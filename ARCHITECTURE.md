@@ -11,7 +11,10 @@
 
 StockSense is an enterprise-grade, real-time inventory platform engineered to transition traditional manual registers, disconnected spreadsheets, and fragmented warehouse tools into a single, high-precision transactional system. 
 
-This document serves as the authoritative architectural blueprint for engineering the entire StockSense platform from scratch. It establishes the technical standards, domain models, consistency invariants, transaction boundaries, security paradigms, AI integration topologies, and deployment infrastructure required to build a resilient, scalable, and auditable system.
+This document serves as the authoritative architectural blueprint for engineering the entire StockSense platform. It establishes the technical standards, domain models, consistency invariants, transaction boundaries, security paradigms, AI integration topologies, and deployment infrastructure required to build a resilient, scalable, and auditable system.
+
+> **Operational Scope & Implementation Status:**  
+> The core requirements defined by the authoritative problem statement (`StockSense.pdf`)—comprising **Identity & RBAC**, the **Central Transactional Inventory Engine**, **Multi-Warehouse Spatial Hierarchy**, **Inbound Receipts**, **Outbound Deliveries**, **Zero-Delta Internal Transfers**, **Physical Stock Adjustments**, the **Immutable Stock Ledger**, and the **Move History Timeline**—are **fully implemented and verified** with 52 automated tests passing against Neon PostgreSQL. Advanced intelligent extensions (grounded AI assistant, ML forecasting, and anomaly detection) are classified under the Phase 3–5 Future Roadmap.
 
 ---
 

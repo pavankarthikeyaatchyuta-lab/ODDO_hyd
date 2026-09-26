@@ -99,36 +99,32 @@ The system continuously audits inventory health, calculates deterministic consum
 
 ## 4. Implementation Status
 
-To ensure engineering transparency, project features are classified across three distinct execution states:
+### Current Core Implementation (Fully Production-Ready & Tested)
+- [x] **Central Inventory Transaction Engine**: Backend atomic transactions (`prisma.$transaction`) enforcing non-negotiable inventory consistency and zero unrecorded stock movements.
+- [x] **Authentication & RBAC**: User registration, login, logout, bcrypt password hashing, JWT bearer tokens, active token blacklist, and OTP-based password reset.
+- [x] **Backend-Enforced Authorization**: 4 distinct user roles (`ADMIN`, `INVENTORY_MANAGER`, `WAREHOUSE_STAFF`, `VIEWER_AUDITOR`) protecting all sensitive API endpoints.
+- [x] **Inventory Dashboard**: Exact 6 live KPIs, dynamic multi-dimensional filters (Document Type, Status, Warehouse/Location, Product Category), recent activity stream, low/out-of-stock panels, and quick actions.
+- [x] **Product Catalog & Management**: SKU uniqueness, categories, unit of measure (UoM), cost and sale pricing, deterministic reordering rules (`minStock`, `maxStock`, `reorderQuantity`), dynamic stock status (`IN_STOCK`, `LOW_STOCK`, `OUT_OF_STOCK`), and spatial location breakdown.
+- [x] **Product Categories**: Category taxonomy hierarchy and item classification.
+- [x] **Warehouse Spatial Hierarchy**: Multi-warehouse structural tree (**Warehouse $\rightarrow$ Zone $\rightarrow$ Rack $\rightarrow$ Shelf $\rightarrow$ Bin**) with barcode support and flat bin pickers.
+- [x] **Inbound Receipts Workflow**: Vendor receipts (`DRAFT` $\rightarrow$ `READY` $\rightarrow$ `VALIDATED` / `DONE` / `CANCELLED`) automatically incrementing destination bin stock and logging immutable ledger entries.
+- [x] **Outbound Delivery Orders Workflow**: Customer fulfillment (`DRAFT` $\rightarrow$ `READY` $\rightarrow$ `PICKING` $\rightarrow$ `PACKED` $\rightarrow$ `VALIDATED` / `DONE` / `CANCELLED`) with strict insufficient stock rejection and automated stock decrement.
+- [x] **Internal Transfers**: Location-to-location reallocation (`DRAFT` $\rightarrow$ `READY` $\rightarrow$ `DONE` / `CANCELLED`) strictly guaranteeing zero net change in total company stock.
+- [x] **Stock Adjustments**: Physical count discrepancy reconciliation implementing $\Delta = \text{Counted} - \text{Recorded}$, capturing audit reason codes (`DAMAGED`, `LOST`, `FOUND`, `COUNTING_ERROR`, `DATA_CORRECTION`), and updating balances.
+- [x] **Immutable Stock Ledger**: First-class double-entry audit journal with chronological logging, reference documents, user attribution, location paths, and multi-filter search.
+- [x] **Move History**: Visual chronological timeline of all inventory flows.
+- [x] **User Profile & Security**: Profile editing, secure password changing with policy validation, live permission breakdown matrix, and interactive backend permission tester.
+- [x] **Comprehensive Seed Data**: Pre-seeded with 6 categories, 2 multi-zone warehouses, 4 spatial bins, 6 core products, receipts, deliveries, transfers, adjustments, and alerts.
+- [x] **PostgreSQL with Neon**: Cloud database persistence as the single source of truth.
+- [x] **Automated Test Suite**: 52/52 tests passing in Vitest covering all domain modules, edge cases, zero-delta preservation, and error handling.
 
-### Implemented
-- [x] Comprehensive Architecture Blueprint and Technical Specification (`README.md` & `ARCHITECTURE.md`).
-- [x] Repository initialization and Git configuration tracking `main`.
-- [x] Core domain model and relational schema definitions (28 domain entities).
-- [x] Mathematical definitions for inventory consistency and reservation rules.
-- [x] Backend API service architecture (TypeScript / Express.js / Node.js).
-- [x] Neon Serverless PostgreSQL database connection and live schema synchronization.
-- [x] Authentication system with JWT access & refresh token rotation, active revocation blacklist, and bcrypt password hashing.
-- [x] OTP-based password reset with 10-minute expiry and anti-enumeration safeguards.
-- [x] Granular Role-Based Access Control (RBAC) with 4 standard roles (`ADMIN`, `INVENTORY_MANAGER`, `WAREHOUSE_STAFF`, `VIEWER_AUDITOR`) and 12 permission keys.
-- [x] Backend permission protection on sensitive operations (`/api/v1/sensitive/*`).
-- [x] User profile management and authenticated password change.
-- [x] Interactive Frontend (React 18 / Vite / Tailwind CSS) featuring 1-click role switching, active permission matrix, and real-time sensitive operations workbench.
-- [x] Automated test suite (35 tests passing in Vitest covering auth, token rotation, OTP reset, and RBAC matrix).
-
-### In Progress
-- [ ] Core inventory product catalog and spatial location views (Warehouses, Zones, Racks, Bins).
-- [ ] Inbound vendor receipts and purchase order linking.
-- [ ] Outbound delivery order picking and dispatch.
-
-### Planned
-- [ ] Full Role-Based Access Control (RBAC) middleware & security policies.
-- [ ] Reordering automation engine & safety-stock calculations.
-- [ ] Camera-based QR/Barcode scanning integration on mobile viewports.
-- [ ] Inventory Counting (Cycle Count) sessions with two-phase manager sign-off.
+### Future Roadmap (Planned Phase 2 Modules)
 - [ ] Grounded AI Inventory Assistant powered by structured vector/SQL retrieval.
+- [ ] Predictive Demand Forecasting & What-If Replenishment Simulator.
 - [ ] Real-time Anomaly Detection engine for statistical variance and shrinkage.
+- [ ] Camera-based QR/Barcode scanning integration on mobile viewports.
 - [ ] Multi-format reporting engine (PDF, Excel, CSV generation).
+- [ ] Offline-capable progressive web application (PWA) with background sync.
 
 ---
 
