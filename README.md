@@ -5,7 +5,7 @@
 [![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Pending-orange?style=flat-square&logo=githubactions)](https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Repository Version](https://img.shields.io/badge/Version-0.1.0--dev-informational?style=flat-square)](https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd)
-[![Architecture: Modular Monolith / Microservices-Ready](https://img.shields.io/badge/Architecture-Modular%20Monolith-green?style=flat-square)](docs/architecture)
+[![Architecture: Modular Monolith / Microservices-Ready](https://img.shields.io/badge/Architecture-Modular%20Monolith-green?style=flat-square)](ARCHITECTURE.md)
 [![UI Mockup Reference](https://img.shields.io/badge/Mockup-Excalidraw-purple?style=flat-square)](https://link.excalidraw.com/l/65VNwvy7c4X/3ENvQFu9o8R)
 
 ---
