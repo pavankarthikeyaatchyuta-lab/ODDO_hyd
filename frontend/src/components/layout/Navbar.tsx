@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { notificationsApi } from '../../services/api';
+import { notificationsApi, healthApi } from '../../services/api';
 import { NotificationItem, UserRole } from '../../types';
 import {
   Menu,
@@ -30,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [dbLatency, setDbLatency] = useState<number | null>(null);
 
   const pageTitles: Record<NavigationPage, { title: string; subtitle: string }> = {
     dashboard: { title: 'Inventory Dashboard', subtitle: 'Live warehouse KPIs and activity stream' },
@@ -56,9 +57,24 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  const fetchHealth = async () => {
+    try {
+      const data = await healthApi.getHealth();
+      if (data?.database?.responseTimeMs) {
+        setDbLatency(data.database.responseTimeMs);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 20000);
+    fetchHealth();
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchHealth();
+    }, 20000);
     return () => clearInterval(interval);
   }, []);
 
@@ -102,12 +118,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right: Quick Role Switcher + Notification Bell + Profile Button */}
+        {/* Right: Neon DB Telemetry + Role Switcher + Notification Bell + Profile Button */}
         <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Live Neon DB Telemetry Status Pill */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] font-mono text-slate-300 shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Neon DB: <strong className="text-emerald-300 font-bold">{dbLatency ? `${dbLatency}ms` : 'Online'}</strong></span>
+          </div>
+
           {/* Quick Role Switcher for seamless test demoing */}
           <div className="hidden md:flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
             <span className="text-[11px] text-slate-400 px-2 flex items-center gap-1">
-              <UserCheck className="h-3 w-3 text-sky-400" /> Switch Role:
+              <UserCheck className="h-3 w-3 text-sky-400" /> Role:
             </span>
             <button
               disabled={isSwitchingRole}

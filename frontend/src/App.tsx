@@ -21,7 +21,7 @@ import { StockLedgerView } from './views/StockLedgerView';
 import { WarehousesView } from './views/WarehousesView';
 import { ProfileView } from './views/ProfileView';
 
-import { Boxes, Shield, Terminal, Sparkles } from 'lucide-react';
+import { Boxes, Terminal, Sparkles, MapPin } from 'lucide-react';
 
 const PAGE_TO_PATH: Record<NavigationPage, string> = {
   dashboard: '/dashboard',
@@ -140,9 +140,13 @@ function AppContent() {
   // Unauthenticated: Show Login & Register / Reset Screens
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-white">
+      <div className="min-h-screen bg-slate-950 bg-warehouse-grid text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-white relative overflow-hidden">
+        {/* Ambient Radial Glow Overlays */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-sky-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 blur-3xl pointer-events-none" />
+
         {/* Navigation bar for unauthenticated page */}
-        <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+        <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
@@ -157,13 +161,13 @@ function AppContent() {
             </div>
 
             <div className="flex items-center space-x-3 text-xs">
-              <span className="hidden md:flex items-center gap-1.5 text-slate-400">
-                <Shield className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Backend RBAC Active</span>
+              <span className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300 font-mono text-[11px]">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Neon PostgreSQL Live</span>
               </span>
               <button
                 onClick={() => setShowRegisterModal(true)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium transition"
+                className="px-3.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-semibold transition"
               >
                 Sign Up
               </button>
@@ -172,18 +176,40 @@ function AppContent() {
         </header>
 
         {/* Hero & Login Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-          <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-medium mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Full Double-Entry Inventory Transaction Engine</span>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-semibold shadow-inner">
+              <Sparkles className="h-3.5 w-3.5 text-sky-400" />
+              <span>Full Double-Entry Inventory Engine • Neon Serverless PostgreSQL</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Intelligent Inventory & Multi-Warehouse Control
+            
+            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+              Intelligent Inventory & <br className="hidden sm:block" />
+              <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
+                Multi-Warehouse Operations
+              </span>
             </h1>
-            <p className="mt-2 text-sm text-slate-400">
-              Receipts, Delivery Orders, Zero-Delta Internal Transfers, Physical Count Adjustments, and Immutable Stock Ledger.
+
+            <p className="mt-2 text-sm text-slate-400 max-w-2xl mx-auto">
+              Inbound Receipts, Outbound Deliveries, Zero-Delta Internal Transfers, Physical Count Adjustments, and Immutable Stock Ledger.
             </p>
+
+            {/* Spatial Hierarchy Interactive Pipeline Banner */}
+            <div className="pt-2">
+              <div className="inline-flex flex-wrap items-center justify-center gap-2 text-[11px] font-mono py-2 px-4 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl backdrop-blur-md">
+                <span className="text-sky-400 font-bold flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" /> Warehouse (WH-MAIN)
+                </span>
+                <span className="text-slate-600">→</span>
+                <span className="text-emerald-400 font-semibold">Zone A (Metals)</span>
+                <span className="text-slate-600">→</span>
+                <span className="text-indigo-400">Rack R01</span>
+                <span className="text-slate-600">→</span>
+                <span className="text-purple-400">Shelf S01</span>
+                <span className="text-slate-600">→</span>
+                <span className="text-amber-400 font-black px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">Bin B01</span>
+              </div>
+            </div>
           </div>
 
           <div className="max-w-xl mx-auto">
@@ -193,15 +219,15 @@ function AppContent() {
             />
           </div>
 
-          <div className="max-w-4xl mx-auto pt-6 border-t border-slate-800/80">
+          <div className="max-w-5xl mx-auto pt-6 border-t border-slate-800/80">
             <QuickStats />
           </div>
         </main>
 
-        <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500 relative z-10">
           <div className="flex items-center justify-center space-x-2">
             <Terminal className="h-3.5 w-3.5 text-slate-600" />
-            <span>StockSense — Enterprise Inventory Management System</span>
+            <span>StockSense Enterprise — Architectural Compliance with StockSense Problem Statement</span>
           </div>
         </footer>
 
@@ -220,7 +246,9 @@ function AppContent() {
 
   // Authenticated Application
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans selection:bg-sky-500/30 selection:text-white">
+    <div className="min-h-screen bg-slate-950 bg-warehouse-grid text-slate-100 flex font-sans selection:bg-sky-500/30 selection:text-white relative">
+      {/* Ambient Top Glow */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-500/5 blur-3xl pointer-events-none" />
       {/* Sidebar (Desktop fixed, Mobile offcanvas) */}
       <Sidebar
         currentPage={currentPage}
