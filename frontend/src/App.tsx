@@ -1,28 +1,38 @@
 import { useEffect, useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header } from './components/Header';
 import { SystemHealthBanner } from './components/SystemHealthBanner';
 import { QuickStats } from './components/QuickStats';
-import { AuthCard } from './components/AuthCard';
+import { LoginForm } from './components/auth/LoginForm';
+import { RegisterModal } from './components/auth/RegisterModal';
+import { OTPResetModal } from './components/auth/OTPResetModal';
+import { UserProfileCard } from './components/auth/UserProfileCard';
+import { PermissionMatrixCard } from './components/auth/PermissionMatrixCard';
+import { SensitiveOperationsTester } from './components/auth/SensitiveOperationsTester';
 import { healthApi, HealthData } from './services/api';
-import { Layers, Workflow, ShieldCheck, Terminal, Compass } from 'lucide-react';
+import { Terminal, Shield, Sparkles } from 'lucide-react';
 
-export function App() {
+function DashboardContent() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [health, setHealth] = useState<HealthData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const [healthError, setHealthError] = useState<string | null>(null);
+
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
 
   const fetchHealth = async () => {
-    setLoading(true);
-    setError(null);
+    setHealthLoading(true);
+    setHealthError(null);
     try {
       const data = await healthApi.getHealth();
       setHealth(data);
     } catch (err: unknown) {
       const e = err as Error;
-      setError(e.message || 'Failed to connect to StockSense API');
+      setHealthError(e.message || 'Failed to connect to StockSense API');
       setHealth(null);
     } finally {
-      setLoading(false);
+      setHealthLoading(false);
     }
   };
 
@@ -32,82 +42,101 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm font-mono">
+        <div className="flex items-center space-x-2">
+          <div className="h-4 w-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          <span>Initializing StockSense Security Foundation...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Top Hero Banner */}
+        {/* Hero Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              StockSense Foundation
+            <div className="flex items-center space-x-2">
+              <span className="text-xs uppercase font-extrabold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-sky-500/20 to-purple-500/20 text-sky-300 border border-sky-500/30 flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3 text-sky-400" /> Step 3 Milestone
+              </span>
+              <span className="text-xs text-slate-400 font-mono">
+                Authentication & Role-Based Access Control
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mt-1">
+              StockSense Identity & Governance Platform
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Transactional inventory core, Prisma relational schema, and microservice-ready API gateway
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Backend-enforced granular permissions, token revocation blacklist, and OTP recovery
             </p>
           </div>
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <Compass className="h-4 w-4 text-sky-400" />
-            <span>Sprint: Foundation & Schema Bootstrap</span>
+
+          <div className="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl self-start md:self-auto">
+            <Shield className="h-4 w-4 text-emerald-400" />
+            <span>RBAC Status: Active (4 Roles, 12 Permissions)</span>
           </div>
         </div>
 
-        {/* Live System Ingress Health */}
+        {/* Live System Ingress & Database Health Banner */}
         <SystemHealthBanner
           health={health}
-          loading={loading}
-          error={error}
+          loading={healthLoading}
+          error={healthError}
           onRefresh={fetchHealth}
         />
 
-        {/* KPI Preview */}
-        <QuickStats />
-
-        {/* Auth & Security Card */}
-        <AuthCard />
-
-        {/* Architecture Foundation Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80">
-            <div className="p-2.5 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 w-fit mb-4">
-              <Layers className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-white mb-2">Relational Domain Model</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              28 domain entities mapped in Prisma: Multi-level spatial locations (Warehouse &rarr; Zone &rarr; Rack &rarr; Shelf &rarr; Bin), Batches, Serials, Reorder Rules, and Procurement.
-            </p>
+        {/* If Authenticated: Display Profile, Permission Matrix & Sensitive Operations Tester */}
+        {isAuthenticated ? (
+          <div className="space-y-8">
+            <UserProfileCard />
+            <PermissionMatrixCard />
+            <SensitiveOperationsTester />
+            <QuickStats />
           </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80">
-            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 w-fit mb-4">
-              <Workflow className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-white mb-2">Immutable Stock Ledger</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Double-entry inspired journal capturing every stock increment, transfer, delivery, and adjustment with mathematical balance invariants.
-            </p>
+        ) : (
+          /* If Not Authenticated: Display Login & Quick Role Switcher */
+          <div className="space-y-8">
+            <LoginForm
+              onOpenRegister={() => setShowRegisterModal(true)}
+              onOpenOTPReset={() => setShowOTPModal(true)}
+            />
+            <QuickStats />
           </div>
+        )}
 
-          <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/80">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-fit mb-4">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-white mb-2">Granular Role-Based Access</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Admin, Inventory Manager, Warehouse Staff, and Auditor roles enforced with token-based authentication and OTP recovery pipelines.
-            </p>
-          </div>
-        </div>
+        {/* Modals */}
+        <RegisterModal
+          isOpen={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+        />
+
+        <OTPResetModal
+          isOpen={showOTPModal}
+          onClose={() => setShowOTPModal(false)}
+        />
       </main>
 
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500">
         <div className="flex items-center justify-center space-x-2">
           <Terminal className="h-3.5 w-3.5 text-slate-600" />
-          <span>StockSense — Engineered with React, Node.js, Express, and Prisma</span>
+          <span>StockSense Step 3 — Secure Identity, Session Management & RBAC Protection</span>
         </div>
       </footer>
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <DashboardContent />
+    </AuthProvider>
   );
 }
 

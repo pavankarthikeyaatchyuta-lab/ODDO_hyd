@@ -7,6 +7,7 @@ import { errorHandler } from './core/errors/error-handler';
 import { NotFoundError } from './core/errors/app-error';
 import { healthRouter } from './modules/health/health.router';
 import { authRouter } from './modules/auth/auth.router';
+import { sensitiveRouter } from './modules/sensitive/sensitive.router';
 
 export function createApp(): Express {
   const app = express();
@@ -32,6 +33,7 @@ export function createApp(): Express {
   // 4. API Domain Routes
   app.use(`${env.API_PREFIX}/health`, healthRouter);
   app.use(`${env.API_PREFIX}/auth`, authRouter);
+  app.use(`${env.API_PREFIX}/sensitive`, sensitiveRouter);
 
   // 5. Unhandled Route Catch-all (404)
   app.use((req: Request, res: Response, next: NextFunction) => {

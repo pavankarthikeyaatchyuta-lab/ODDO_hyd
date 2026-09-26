@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting StockSense Database Seeding...');
 
-  // 1. Seed Roles & Users
+  // 1. Seed Roles & Users for all 4 RBAC levels
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
   const admin = await prisma.user.upsert({
@@ -48,7 +48,24 @@ async function main() {
     },
   });
 
-  console.log(`👤 Users seeded: ${admin.email}, ${manager.email}, ${staff.email}`);
+  const auditor = await prisma.user.upsert({
+    where: { email: 'auditor@stocksense.io' },
+    update: {},
+    create: {
+      email: 'auditor@stocksense.io',
+      passwordHash,
+      firstName: 'Elena',
+      lastName: 'Rostova',
+      role: 'VIEWER_AUDITOR',
+      isActive: true,
+    },
+  });
+
+  console.log(`👤 Users seeded for all 4 roles:`);
+  console.log(`   - ADMIN: ${admin.email}`);
+  console.log(`   - INVENTORY_MANAGER: ${manager.email}`);
+  console.log(`   - WAREHOUSE_STAFF: ${staff.email}`);
+  console.log(`   - VIEWER_AUDITOR: ${auditor.email}`);
 
   // 2. Seed Warehouse Spatial Hierarchy
   const warehouse = await prisma.warehouse.upsert({
