@@ -5,9 +5,9 @@ import { DashboardKPIs } from '../types';
 
 export const QuickStats: React.FC = () => {
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
-  const [dbStatus, setDbStatus] = useState<{ connected: boolean; latency: number }>({
-    connected: true,
-    latency: 1600,
+  const [dbStatus, setDbStatus] = useState<{ connected: boolean; latency: number | null }>({
+    connected: false,
+    latency: null,
   });
 
   useEffect(() => {
@@ -39,8 +39,8 @@ export const QuickStats: React.FC = () => {
   const stats = [
     {
       title: 'Products In Stock',
-      value: kpis ? `${kpis.totalProductsInStock} Active` : '7 Catalog SKUs',
-      subtext: kpis ? `${kpis.totalStockUnits} Total units recorded` : 'Steel, Chairs, Copper, Paint, etc.',
+      value: kpis ? `${kpis.totalProductsInStock} Active` : '—',
+      subtext: kpis ? `${kpis.totalStockUnits} Total units recorded` : 'Loading inventory data...',
       icon: Package,
       badge: 'Stock Balance',
       color: 'text-sky-400 bg-sky-500/10 border-sky-500/30',
@@ -48,7 +48,7 @@ export const QuickStats: React.FC = () => {
     },
     {
       title: 'Inbound Receipts',
-      value: kpis ? `${kpis.pendingReceiptsCount} Pending` : '1 Ready / 1 Done',
+      value: kpis ? `${kpis.pendingReceiptsCount} Pending` : '—',
       subtext: 'Supplier intake tracking active',
       icon: ArrowDownLeft,
       badge: 'Procurement',
@@ -57,7 +57,7 @@ export const QuickStats: React.FC = () => {
     },
     {
       title: 'Outbound Deliveries',
-      value: kpis ? `${kpis.pendingDeliveriesCount} In Queue` : '1 Picking / 1 Done',
+      value: kpis ? `${kpis.pendingDeliveriesCount} In Queue` : '—',
       subtext: 'Pick, pack & dispatch queue',
       icon: ArrowUpRight,
       badge: 'Fulfillment',
@@ -66,7 +66,7 @@ export const QuickStats: React.FC = () => {
     },
     {
       title: 'Internal Transfers',
-      value: kpis ? `${kpis.scheduledTransfersCount} Scheduled` : '1 Completed',
+      value: kpis ? `${kpis.scheduledTransfersCount} Scheduled` : '—',
       subtext: 'Zero-delta spatial movement',
       icon: Repeat,
       badge: 'Zero-Delta',
@@ -75,8 +75,8 @@ export const QuickStats: React.FC = () => {
     },
     {
       title: 'Neon PostgreSQL Engine',
-      value: dbStatus.connected ? 'Operational' : 'Reconnecting',
-      subtext: `${dbStatus.latency}ms cloud roundtrip`,
+      value: dbStatus.connected ? 'Operational' : (dbStatus.latency === null ? 'Connecting...' : 'Disconnected'),
+      subtext: dbStatus.latency !== null ? `${dbStatus.latency}ms cloud roundtrip` : 'Checking connectivity...',
       icon: Database,
       badge: 'Cloud Ledger',
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',

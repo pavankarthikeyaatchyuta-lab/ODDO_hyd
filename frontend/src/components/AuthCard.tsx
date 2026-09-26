@@ -3,8 +3,8 @@ import { Lock, Mail, KeyRound, CheckCircle, ArrowRight, UserCheck } from 'lucide
 import { apiClient } from '../services/api';
 
 export const AuthCard: React.FC = () => {
-  const [email, setEmail] = useState('admin@stocksense.io');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginResult, setLoginResult] = useState<{ user: { email: string; role: string; firstName: string; lastName: string }; token: string } | null>(null);
   const [otpSent, setOtpSent] = useState(false);
@@ -106,7 +106,7 @@ export const AuthCard: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-sky-500 font-mono"
-                placeholder="admin@stocksense.io"
+                placeholder="name@company.com"
               />
             </div>
 
@@ -120,7 +120,7 @@ export const AuthCard: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-slate-100 text-xs focus:outline-none focus:border-sky-500 font-mono"
-                placeholder="Password123!"
+                placeholder="••••••••••••"
               />
             </div>
           </div>

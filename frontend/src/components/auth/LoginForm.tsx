@@ -10,8 +10,8 @@ interface Props {
 
 export const LoginForm: React.FC<Props> = ({ onOpenRegister, onOpenOTPReset }) => {
   const { login, quickLogin } = useAuth();
-  const [email, setEmail] = useState('admin@stocksense.io');
-  const [password, setPassword] = useState('Password123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'quick' | 'manual'>('quick');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -193,7 +193,7 @@ export const LoginForm: React.FC<Props> = ({ onOpenRegister, onOpenOTPReset }) =
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@stocksense.io"
+                placeholder="name@company.com"
                 required
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-700/80 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
               />
