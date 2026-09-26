@@ -2,10 +2,12 @@
 
 > **Next-generation, real-time inventory platform engineered for complete stock traceability, multi-warehouse operational excellence, and data-grounded intelligence.**
 
-[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Pending-orange?style=flat-square&logo=githubactions)](https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd/actions)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=flat-square&logo=githubactions)](https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Repository Version](https://img.shields.io/badge/Version-0.1.0--dev-informational?style=flat-square)](https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd)
-[![Architecture: Modular Monolith / Microservices-Ready](https://img.shields.io/badge/Architecture-Modular%20Monolith-green?style=flat-square)](ARCHITECTURE.md)
+[![Tests: 52/52 Passing](https://img.shields.io/badge/Tests-52%2F52%20Passing-brightgreen?style=flat-square&logo=vitest)](backend/tests)
+[![Database: Neon Serverless PostgreSQL](https://img.shields.io/badge/Database-Neon%20PostgreSQL-00E5FF?style=flat-square&logo=postgresql)](https://neon.tech)
+[![TypeScript: Strict](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript)](tsconfig.json)
+[![StockSense: PS Compliant](https://img.shields.io/badge/StockSense-PS%20Compliant-success?style=flat-square)](StockSense.pdf)
 [![UI Mockup Reference](https://img.shields.io/badge/Mockup-Excalidraw-purple?style=flat-square)](https://link.excalidraw.com/l/65VNwvy7c4X/3ENvQFu9o8R)
 
 ---
@@ -47,7 +49,8 @@
 - [33. UI/UX Design Direction](#33-uiux-design-direction)
 - [34. Product Roadmap](#34-product-roadmap)
 - [35. Contributing](#35-contributing)
-- [36. License](#36-license)
+- [36. Project Team & Collaborators](#36-project-team--collaborators)
+- [37. License](#37-license)
 
 ---
 
@@ -114,9 +117,12 @@ The system continuously audits inventory health, calculates deterministic consum
 - [x] **Immutable Stock Ledger**: First-class double-entry audit journal with chronological logging, reference documents, user attribution, location paths, and multi-filter search.
 - [x] **Move History**: Visual chronological timeline of all inventory flows.
 - [x] **User Profile & Security**: Profile editing, secure password changing with policy validation, live permission breakdown matrix, and interactive backend permission tester.
+- [x] **Production UI/UX & Live Telemetry**: Logistics Dark Mode glass-card UI, dynamic PostgreSQL round-trip latency counter, 1-Click Role Switcher for instant evaluator testing, and full mobile responsiveness.
+- [x] **Zero Hardcoded Values**: All forms, modals, and telemetry states are strictly driven by runtime database responses with clean zero/empty initial states.
 - [x] **Comprehensive Seed Data**: Pre-seeded with 6 categories, 2 multi-zone warehouses, 4 spatial bins, 6 core products, receipts, deliveries, transfers, adjustments, and alerts.
-- [x] **PostgreSQL with Neon**: Cloud database persistence as the single source of truth.
+- [x] **PostgreSQL with Neon**: Cloud database persistence as the single source of truth (no mock or in-memory databases).
 - [x] **Automated Test Suite**: 52/52 tests passing in Vitest covering all domain modules, edge cases, zero-delta preservation, and error handling.
+- [x] **Live E2E Verification**: Dedicated live audit script (`backend/scripts/live-ps-audit.ts`) passing 100% against live endpoints and remote Neon PostgreSQL.
 
 ### Future Roadmap (Planned Phase 2 Modules)
 - [ ] Grounded AI Inventory Assistant powered by structured vector/SQL retrieval.
@@ -910,78 +916,88 @@ VITE_APP_NAME="StockSense"
 ```bash
 git clone https://github.com/pavankarthikeyaatchyuta-lab/ODDO_hyd.git
 cd ODDO_hyd
-```
-
-### 2. Start Supporting Infrastructure via Docker
-```bash
-# Starts local PostgreSQL and Redis instances in the background
-docker-compose up -d
-```
-
-### 3. Initialize the Backend
-```bash
-cd backend
 npm install
-npx prisma migrate dev --name init
-npm run dev
 ```
-*Backend API service starts at:* `http://localhost:5000`
 
-### 4. Initialize the Frontend
+### 2. Configure Environment Variables
+StockSense is backed by serverless Neon PostgreSQL. Copy the backend example file and supply your connection details:
 ```bash
-# In a separate terminal
-cd frontend
-npm install
-npm run dev
+cp backend/.env.example backend/.env
 ```
-*Frontend application launches at:* `http://localhost:5173`
+Ensure your `backend/.env` contains your Neon PostgreSQL connection string:
+```env
+DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@YOUR_ENDPOINT.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+JWT_SECRET="YOUR_SECURE_JWT_SECRET"
+PORT=5000
+FRONTEND_URL="http://localhost:5173"
+NODE_ENV="development"
+```
+
+### 3. Launch Backend & Frontend Services
+From the monorepo root:
+```bash
+# Terminal 1: Launch Backend API (with hot reload via tsx watch)
+npm run dev:backend
+
+# Terminal 2: Launch Frontend Application (Vite Dev Server)
+npm run dev:frontend
+```
+- **Backend API:** `http://localhost:5000/api/v1`
+- **Frontend App:** `http://localhost:5173`
+- **API Health Check:** `http://localhost:5000/api/v1/health`
 
 ---
 
 ## 29. Database Setup & Migrations
 
-StockSense uses Prisma ORM for type-safe schema synchronization.
+StockSense uses Prisma ORM connected to Neon PostgreSQL.
 
 ```bash
-# Generate Prisma Client after schema changes
-npx prisma generate
+# Generate Prisma Client
+npx --prefix backend prisma generate
 
-# Create and apply new migrations locally
-npx prisma migrate dev --name add_batch_tracking
+# Apply pending migrations to the database
+npm run db:migrate
 
-# Seed demo data (warehouses, default products, admin users)
-npx prisma db seed
+# Seed demo data (categories, multi-zone warehouses, bins, default products, demo accounts)
+npm run db:seed
 
-# Open graphical database browser
-npx prisma studio
+# (Optional) Open graphical database browser
+npx --prefix backend prisma studio
 ```
 
 ---
 
 ## 30. Testing Strategy
 
-StockSense enforces automated test coverage across all critical inventory mutation paths:
+StockSense enforces strict automated test verification covering the central inventory engine, mathematical invariants, zero-delta spatial transfers, and granular RBAC.
 
 ```text
 +-------------------------------------------------------------------------------+
-|                             TESTING PYRAMID                                   |
+|                             TESTING STRATEGY                                  |
 +-------------------------------------------------------------------------------+
-|     [End-to-End Tests]      Playwright: Full browser-based receipt to pick    |
-|   [Integration Tests]       Supertest: Multi-location balance preservation    |
-|  [Unit / Invariant Tests]   Vitest: Math formulas, EDR calculations, FEFO     |
+|  [Live PS E2E Audit]     scripts/live-ps-audit.ts: 100% pass on live endpoints|
+|  [Integration & RBAC]    Vitest + Supertest: 52/52 tests against live Neon DB |
+|  [Invariant Verification]Vitest: Zero-delta, atomic rollback, double-entry     |
 +-------------------------------------------------------------------------------+
 ```
 
 ### Running Test Suites
 ```bash
-# Execute unit and calculation tests
-npm run test:unit
+# Run full Vitest test suite against Neon PostgreSQL (52/52 passing)
+npm run test:backend
 
-# Execute API integration tests with transactional rollback
-npm run test:integration
+# Run live end-to-end Problem Statement audit script
+npx --prefix backend tsx scripts/live-ps-audit.ts
+```
 
-# Execute end-to-end browser workflows
-npm run test:e2e
+### Production Build Verification
+```bash
+# Verify backend TypeScript compilation
+npm run build:backend
+
+# Verify frontend production build (TypeScript + Vite)
+npm run build:frontend
 ```
 
 ---
@@ -1062,6 +1078,19 @@ Contributions are welcomed from all team members. To maintain code quality:
 
 ---
 
-## 36. License
+## 36. Project Team & Collaborators
 
-This project is licensed under the terms of the **MIT License**. See the [LICENSE](LICENSE) file for complete details.
+StockSense is actively maintained and engineered by:
+
+- **Pavan Karthikeya Atchyuta** — Project Lead & Repository Owner
+  - GitHub: [@pavankarthikeyaatchyuta-lab](https://github.com/pavankarthikeyaatchyuta-lab)
+
+- **Busireddy Mohan Narayana Reddy** — Lead Collaborator & Full-Stack Systems Engineer
+  - GitHub: [@Mohanreddy-lab](https://github.com/Mohanreddy-lab)
+  - Email: `busireddy.mohannarayanareddy@gmail.com`
+
+---
+
+## 37. License
+
+This project is licensed under the terms of the **MIT License**. See the [LICENSE](LICENSE) file for complete details.
