@@ -6,6 +6,7 @@ import { UserRole, PermissionKey, RolePermissionsMap } from '../../types/shared'
 import { UnauthorizedError } from '../errors/app-error';
 
 export interface TokenPayload {
+  id: string;
   userId: string;
   email: string;
   role: UserRole;
@@ -35,6 +36,7 @@ export const authUtils = {
     const permissions = authUtils.getPermissionsForRole(user.role);
     const jti = crypto.randomUUID();
     const payload: TokenPayload = {
+      id: user.id,
       userId: user.id,
       email: user.email,
       role: user.role as UserRole,

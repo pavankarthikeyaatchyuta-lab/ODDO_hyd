@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Check, X, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { PermissionKey } from '../../../../shared/types';
+import { PermissionKey } from '../../types';
 
 interface PermissionMeta {
   key: PermissionKey;

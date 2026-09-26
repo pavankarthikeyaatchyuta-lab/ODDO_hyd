@@ -8,6 +8,12 @@ import { NotFoundError } from './core/errors/app-error';
 import { healthRouter } from './modules/health/health.router';
 import { authRouter } from './modules/auth/auth.router';
 import { sensitiveRouter } from './modules/sensitive/sensitive.router';
+import { productsRouter, categoriesRouter } from './modules/products/products.router';
+import { warehousesRouter } from './modules/warehouses/warehouses.router';
+import { operationsRouter } from './modules/operations/operations.router';
+import { ledgerRouter } from './modules/ledger/ledger.router';
+import { dashboardRouter } from './modules/dashboard/dashboard.router';
+import { notificationsRouter } from './modules/notifications/notifications.router';
 
 export function createApp(): Express {
   const app = express();
@@ -33,6 +39,13 @@ export function createApp(): Express {
   // 4. API Domain Routes
   app.use(`${env.API_PREFIX}/health`, healthRouter);
   app.use(`${env.API_PREFIX}/auth`, authRouter);
+  app.use(`${env.API_PREFIX}/products`, productsRouter);
+  app.use(`${env.API_PREFIX}/categories`, categoriesRouter);
+  app.use(`${env.API_PREFIX}/warehouses`, warehousesRouter);
+  app.use(`${env.API_PREFIX}/operations`, operationsRouter);
+  app.use(`${env.API_PREFIX}/inventory`, ledgerRouter);
+  app.use(`${env.API_PREFIX}/dashboard`, dashboardRouter);
+  app.use(`${env.API_PREFIX}/notifications`, notificationsRouter);
   app.use(`${env.API_PREFIX}/sensitive`, sensitiveRouter);
 
   // 5. Unhandled Route Catch-all (404)

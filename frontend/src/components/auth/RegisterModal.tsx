@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../../types';
 
 interface Props {
   isOpen: boolean;

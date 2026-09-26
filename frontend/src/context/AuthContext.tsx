@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
-import { UserSummary, AuthTokens, UserRole, PermissionKey } from '../../../shared/types';
+import { UserSummary, AuthTokens, UserRole, PermissionKey } from '../types';
 
 interface AuthContextType {
   user: UserSummary | null;

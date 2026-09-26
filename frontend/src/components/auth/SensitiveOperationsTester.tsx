@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Terminal, ShieldAlert, CheckCircle2, XCircle, Play } from 'lucide-react';
 import { apiClient } from '../../services/api';
-import { PermissionKey } from '../../../../shared/types';
+import { PermissionKey } from '../../types';
 
 interface ActionDefinition {
   id: string;

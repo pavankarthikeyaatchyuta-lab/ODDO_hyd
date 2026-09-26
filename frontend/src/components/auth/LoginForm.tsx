@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Mail, KeyRound, UserCheck, ArrowRight, UserPlus, Key } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../../types';
 
 interface Props {
   onOpenRegister: () => void;

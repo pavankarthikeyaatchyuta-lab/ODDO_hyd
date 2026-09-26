@@ -28,10 +28,11 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  stockMovements StockLedger[]
-  auditLogs      AuditLog[]
-  notifications  Notification[]
-  countsAssigned InventoryCountItem[]
+  stockMovements   StockLedger[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  countsAssigned   InventoryCountItem[]
+  stockAdjustments StockAdjustment[]
 }
 
 // ==========================================
@@ -47,9 +48,15 @@ model Warehouse {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  zones       Zone[]
-  reorderRules ReorderRule[]
-  counts      InventoryCount[]
+  zones            Zone[]
+  reorderRules     ReorderRule[]
+  counts           InventoryCount[]
+  receipts         Receipt[]
+  deliveryOrders   DeliveryOrder[]
+  sourceTransfers  Transfer[]        @relation("SourceWarehouse")
+  destTransfers    Transfer[]        @relation("DestWarehouse")
+  stockAdjustments StockAdjustment[]
+  stockLedgers     StockLedger[]
 }
 
 model Zone {
@@ -97,8 +104,9 @@ model Bin {
   receiptItems   ReceiptItem[]
   deliveryItems  DeliveryOrderItem[]
   countItems     InventoryCountItem[]
-  transfersOrigin TransferItem[] @relation("TransferOrigin")
-  transfersDest   TransferItem[] @relation("TransferDest")
+  transfersOrigin  TransferItem[]        @relation("TransferOrigin")
+  transfersDest    TransferItem[]        @relation("TransferDest")
+  stockAdjustments StockAdjustment[]
 
   @@unique([shelfId, code])
 }
@@ -125,6 +133,10 @@ model Product {
   uom              String          @default("PCS") // PCS, KG, METER, LITER, BOX
   costPrice        Float           @default(0.0)
   salePrice        Float           @default(0.0)
+  minStock         Float           @default(10.0)
+  maxStock         Float           @default(100.0)
+  reorderQuantity  Float           @default(20.0)
+  isActive         Boolean         @default(true)
   isBatchTracked   Boolean         @default(false)
   isSerialTracked  Boolean         @default(false)
   createdAt        DateTime        @default(now())
@@ -140,6 +152,7 @@ model Product {
   deliveryItems    DeliveryOrderItem[]
   transferItems    TransferItem[]
   countItems       InventoryCountItem[]
+  stockAdjustments StockAdjustment[]
   reservations     StockReservation[]
   forecasts        Forecast[]
   aiInsights       AIInsight[]
@@ -272,13 +285,17 @@ model Receipt {
   receiptNumber   String        @unique
   purchaseOrderId String?
   supplierId      String?
-  status          String        @default("DRAFT") // DRAFT, WAITING, READY, DONE, CANCELLED
+  warehouseId     String?
+  status          String        @default("DRAFT") // DRAFT, READY, VALIDATED, DONE, CANCELLED
   receivedAt      DateTime?
   validatedAt     DateTime?
+  notes           String?
   createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
 
   purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
   supplier        Supplier?      @relation(fields: [supplierId], references: [id])
+  warehouse       Warehouse?     @relation(fields: [warehouseId], references: [id])
   items           ReceiptItem[]
 }
 
@@ -304,11 +321,14 @@ model DeliveryOrder {
   id             String              @id @default(uuid())
   doNumber       String              @unique
   customerName   String
-  status         String              @default("DRAFT") // DRAFT, WAITING, READY, DONE, CANCELLED
+  warehouseId    String?
+  status         String              @default("DRAFT") // DRAFT, READY, PICKING, PACKED, VALIDATED, DONE, CANCELLED
   dispatchedAt   DateTime?
+  notes          String?
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
+  warehouse      Warehouse?          @relation(fields: [warehouseId], references: [id])
   items          DeliveryOrderItem[]
 }
 
@@ -330,13 +350,20 @@ model DeliveryOrderItem {
 // ==========================================
 
 model Transfer {
-  id              String         @id @default(uuid())
-  transferNumber  String         @unique
-  status          String         @default("DRAFT") // DRAFT, IN_TRANSIT, COMPLETED, CANCELLED
-  initiatedAt     DateTime       @default(now())
-  completedAt     DateTime?
+  id                String         @id @default(uuid())
+  transferNumber    String         @unique
+  sourceWarehouseId String?
+  destWarehouseId   String?
+  status            String         @default("DRAFT") // DRAFT, READY, IN_TRANSIT, DONE, CANCELLED
+  initiatedAt       DateTime       @default(now())
+  completedAt       DateTime?
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @default(now()) @updatedAt
 
-  items           TransferItem[]
+  sourceWarehouse   Warehouse?     @relation("SourceWarehouse", fields: [sourceWarehouseId], references: [id])
+  destWarehouse     Warehouse?     @relation("DestWarehouse", fields: [destWarehouseId], references: [id])
+  items             TransferItem[]
 }
 
 model TransferItem {
@@ -387,14 +414,25 @@ model InventoryCountItem {
 }
 
 model StockAdjustment {
-  id               String         @id @default(uuid())
-  adjustmentNumber String         @unique
+  id               String          @id @default(uuid())
+  adjustmentNumber String          @unique
   inventoryCountId String?
-  reasonCode       String         // COUNT_VARIANCE, DAMAGED_GOODS, SCRAP, EXPIRED
+  productId        String
+  binId            String
+  warehouseId      String?
+  recordedQty      Float           @default(0.0)
+  countedQty       Float           @default(0.0)
+  differenceQty    Float           @default(0.0)
+  reasonCode       String          // DAMAGED, LOST, FOUND, COUNTING_ERROR, DATA_CORRECTION, OTHER
   notes            String?
-  createdAt        DateTime       @default(now())
+  adjustedById     String?
+  createdAt        DateTime        @default(now())
 
   inventoryCount   InventoryCount? @relation(fields: [inventoryCountId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id])
+  bin              Bin             @relation(fields: [binId], references: [id])
+  warehouse        Warehouse?      @relation(fields: [warehouseId], references: [id])
+  adjustedBy       User?           @relation(fields: [adjustedById], references: [id])
 }
 
 // ==========================================
@@ -402,24 +440,30 @@ model StockAdjustment {
 // ==========================================
 
 model StockLedger {
-  id               String    @id @default(uuid())
-  timestamp        DateTime  @default(now())
-  productId        String
-  sku              String
-  binId            String
-  movementType     String    // RECEIPT, DELIVERY, TRANSFER, ADJUSTMENT, RESERVATION, RELEASE
-  quantity         Float
-  qtyBefore        Float
-  qtyAfter         Float
-  referenceDocType String?   // PO, RECEIPT, DO, TRANSFER, COUNT, ADJUSTMENT
-  referenceDocId   String?
-  performedById    String?
-  reason           String?
-  recordHash       String?
+  id                 String     @id @default(uuid())
+  timestamp          DateTime   @default(now())
+  productId          String
+  sku                String
+  warehouseId        String?
+  binId              String
+  movementType       String     // RECEIPT, DELIVERY, INTERNAL_TRANSFER, ADJUSTMENT, RESERVATION, RELEASE
+  quantity           Float
+  qtyBefore          Float
+  qtyAfter           Float
+  referenceDocType   String?    // RECEIPT, DELIVERY_ORDER, INTERNAL_TRANSFER, STOCK_ADJUSTMENT, PO, COUNT
+  referenceDocId     String?
+  referenceDocNumber String?
+  sourceLocation     String?
+  destLocation       String?
+  performedById      String?
+  reason             String?
+  recordHash         String?
+  createdAt          DateTime   @default(now())
 
-  product          Product   @relation(fields: [productId], references: [id])
-  bin              Bin       @relation(fields: [binId], references: [id])
-  performedBy      User?     @relation(fields: [performedById], references: [id])
+  product            Product    @relation(fields: [productId], references: [id])
+  warehouse          Warehouse? @relation(fields: [warehouseId], references: [id])
+  bin                Bin        @relation(fields: [binId], references: [id])
+  performedBy        User?      @relation(fields: [performedById], references: [id])
 }
 
 // ==========================================

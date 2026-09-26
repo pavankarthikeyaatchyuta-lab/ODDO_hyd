@@ -23,6 +23,8 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   next();
 }
 
+export const authenticate = requireAuth;
+
 export function requireRole(allowedRoles: UserRole[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
