@@ -14,7 +14,7 @@ export const createReceiptSchema = z.object({
 });
 
 export const updateReceiptStatusSchema = z.object({
-  status: z.enum(['READY', 'CANCELLED']),
+  status: z.enum(['WAITING', 'READY', 'CANCELLED']),
 });
 
 export const createDeliveryOrderSchema = z.object({
@@ -31,7 +31,7 @@ export const createDeliveryOrderSchema = z.object({
 });
 
 export const updateDeliveryOrderStatusSchema = z.object({
-  status: z.enum(['READY', 'PICKING', 'PACKED', 'CANCELLED']),
+  status: z.enum(['WAITING', 'READY', 'PICKING', 'PACKED', 'CANCELLED']),
 });
 
 export const createTransferSchema = z.object({
@@ -49,7 +49,7 @@ export const createTransferSchema = z.object({
 });
 
 export const updateTransferStatusSchema = z.object({
-  status: z.enum(['READY', 'IN_TRANSIT', 'CANCELLED']),
+  status: z.enum(['WAITING', 'READY', 'IN_TRANSIT', 'CANCELLED']),
 });
 
 export const createAdjustmentSchema = z.object({

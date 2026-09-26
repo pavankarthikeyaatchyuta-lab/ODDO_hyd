@@ -166,7 +166,7 @@ export class OperationsService {
     });
   }
 
-  static async updateReceiptStatus(id: string, status: 'READY' | 'CANCELLED') {
+  static async updateReceiptStatus(id: string, status: 'WAITING' | 'READY' | 'CANCELLED') {
     const receipt = await prisma.receipt.findUnique({ where: { id } });
     if (!receipt) throw new NotFoundError('Receipt not found');
     if (receipt.status === 'DONE' || receipt.status === 'VALIDATED') {
@@ -355,7 +355,7 @@ export class OperationsService {
     });
   }
 
-  static async updateDeliveryStatus(id: string, status: 'READY' | 'PICKING' | 'PACKED' | 'CANCELLED') {
+  static async updateDeliveryStatus(id: string, status: 'WAITING' | 'READY' | 'PICKING' | 'PACKED' | 'CANCELLED') {
     const delivery = await prisma.deliveryOrder.findUnique({ where: { id } });
     if (!delivery) throw new NotFoundError('Delivery order not found');
     if (delivery.status === 'DONE' || delivery.status === 'VALIDATED') {
@@ -526,7 +526,7 @@ export class OperationsService {
     });
   }
 
-  static async updateTransferStatus(id: string, status: 'READY' | 'IN_TRANSIT' | 'CANCELLED') {
+  static async updateTransferStatus(id: string, status: 'WAITING' | 'READY' | 'IN_TRANSIT' | 'CANCELLED') {
     const transfer = await prisma.transfer.findUnique({ where: { id } });
     if (!transfer) throw new NotFoundError('Transfer not found');
     if (transfer.status === 'DONE' || transfer.status === 'COMPLETED') {

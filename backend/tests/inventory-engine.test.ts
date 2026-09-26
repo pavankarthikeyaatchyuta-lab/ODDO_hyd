@@ -18,13 +18,21 @@ let testProductId: string;
 let testProductSku: string;
 
 beforeAll(async () => {
-  // Login all 4 seed accounts
-  const [resAdmin, resManager, resStaff, resAuditor] = await Promise.all([
-    request(app).post('/api/v1/auth/login').send({ email: 'admin@stocksense.io', password: 'Password123!' }),
-    request(app).post('/api/v1/auth/login').send({ email: 'manager@stocksense.io', password: 'Password123!' }),
-    request(app).post('/api/v1/auth/login').send({ email: 'staff@stocksense.io', password: 'Password123!' }),
-    request(app).post('/api/v1/auth/login').send({ email: 'auditor@stocksense.io', password: 'Password123!' }),
-  ]);
+  // Warm up Neon connection
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      break;
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+
+  // Login all 4 seed accounts sequentially to avoid connection bursts
+  const resAdmin = await request(app).post('/api/v1/auth/login').send({ email: 'admin@stocksense.io', password: 'Password123!' });
+  const resManager = await request(app).post('/api/v1/auth/login').send({ email: 'manager@stocksense.io', password: 'Password123!' });
+  const resStaff = await request(app).post('/api/v1/auth/login').send({ email: 'staff@stocksense.io', password: 'Password123!' });
+  const resAuditor = await request(app).post('/api/v1/auth/login').send({ email: 'auditor@stocksense.io', password: 'Password123!' });
 
   adminToken = resAdmin.body.data.tokens.accessToken;
   managerToken = resManager.body.data.tokens.accessToken;

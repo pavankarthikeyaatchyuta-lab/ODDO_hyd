@@ -169,7 +169,7 @@ export class InventoryEngineService {
 
       logger.info(`[INVENTORY ENGINE] Receipt ${receipt.receiptNumber} validated by User ${userId}`);
       return updatedReceipt;
-    });
+    }, { maxWait: 15000, timeout: 30000 });
   }
 
   /**
@@ -309,7 +309,7 @@ export class InventoryEngineService {
 
       logger.info(`[INVENTORY ENGINE] Delivery Order ${deliveryOrder.doNumber} validated by User ${userId}`);
       return updatedDO;
-    });
+    }, { maxWait: 15000, timeout: 30000 });
   }
 
   /**
@@ -493,7 +493,7 @@ export class InventoryEngineService {
 
       logger.info(`[INVENTORY ENGINE] Internal Transfer ${transfer.transferNumber} completed by User ${userId}`);
       return updatedTransfer;
-    });
+    }, { maxWait: 15000, timeout: 30000 });
   }
 
   /**
@@ -602,6 +602,6 @@ export class InventoryEngineService {
         binPath: binInfo.path,
         warehouseName: binInfo.warehouseName,
       };
-    });
+    }, { maxWait: 15000, timeout: 30000 });
   }
 }

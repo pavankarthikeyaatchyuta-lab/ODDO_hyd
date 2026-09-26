@@ -4,10 +4,13 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   static async getKPIs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { warehouseId, categoryId, startDate, endDate } = req.query;
+      const { warehouseId, locationId, categoryId, documentType, status, startDate, endDate } = req.query;
       const kpis = await DashboardService.getDashboardKPIs({
         warehouseId: warehouseId as string,
+        locationId: locationId as string,
         categoryId: categoryId as string,
+        documentType: documentType as string,
+        status: status as string,
         startDate: startDate as string,
         endDate: endDate as string,
       });
@@ -24,8 +27,15 @@ export class DashboardController {
 
   static async getRecentActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const limit = req.query.limit ? Number(req.query.limit) : 6;
-      const activity = await DashboardService.getRecentActivity(limit);
+      const { limit, warehouseId, locationId, categoryId, documentType, status } = req.query;
+      const activity = await DashboardService.getRecentActivity({
+        limit: limit ? Number(limit) : 6,
+        warehouseId: warehouseId as string,
+        locationId: locationId as string,
+        categoryId: categoryId as string,
+        documentType: documentType as string,
+        status: status as string,
+      });
 
       res.status(200).json({
         success: true,

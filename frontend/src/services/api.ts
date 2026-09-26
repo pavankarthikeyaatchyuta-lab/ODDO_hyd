@@ -373,7 +373,10 @@ export const ledgerApi = {
 export const dashboardApi = {
   getKPIs: async (filters?: {
     warehouseId?: string;
+    locationId?: string;
     categoryId?: string;
+    documentType?: string;
+    status?: string;
     startDate?: string;
     endDate?: string;
   }): Promise<DashboardKPIs> => {
@@ -381,8 +384,16 @@ export const dashboardApi = {
     return res.data.data;
   },
 
-  getRecentActivity: async (limit = 6): Promise<any> => {
-    const res = await apiClient.get('/dashboard/recent-activity', { params: { limit } });
+  getRecentActivity: async (filters?: {
+    limit?: number;
+    warehouseId?: string;
+    locationId?: string;
+    categoryId?: string;
+    documentType?: string;
+    status?: string;
+  } | number): Promise<any> => {
+    const params = typeof filters === 'number' ? { limit: filters } : (filters || { limit: 6 });
+    const res = await apiClient.get('/dashboard/recent-activity', { params });
     return res.data.data;
   },
 

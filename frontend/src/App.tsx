@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar, NavigationPage } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
@@ -23,10 +23,75 @@ import { ProfileView } from './views/ProfileView';
 
 import { Boxes, Shield, Terminal, Sparkles } from 'lucide-react';
 
+const PAGE_TO_PATH: Record<NavigationPage, string> = {
+  dashboard: '/dashboard',
+  products: '/products',
+  categories: '/categories',
+  receipts: '/operations/receipts',
+  deliveries: '/operations/deliveries',
+  transfers: '/operations/transfers',
+  adjustments: '/operations/adjustments',
+  'stock-overview': '/inventory/overview',
+  'stock-ledger': '/inventory/ledger',
+  'move-history': '/inventory/move-history',
+  warehouses: '/warehouses',
+  profile: '/profile',
+};
+
+const PATH_TO_PAGE: Record<string, NavigationPage> = {
+  '/dashboard': 'dashboard',
+  '/products': 'products',
+  '/categories': 'categories',
+  '/operations/receipts': 'receipts',
+  '/operations/deliveries': 'deliveries',
+  '/operations/transfers': 'transfers',
+  '/operations/adjustments': 'adjustments',
+  '/inventory/overview': 'stock-overview',
+  '/inventory/ledger': 'stock-ledger',
+  '/inventory/move-history': 'move-history',
+  '/warehouses': 'warehouses',
+  '/profile': 'profile',
+};
+
+function getInitialPage(): NavigationPage {
+  const path = window.location.pathname;
+  return PATH_TO_PAGE[path] || 'dashboard';
+}
+
 function AppContent() {
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const [currentPage, setCurrentPage] = useState<NavigationPage>('dashboard');
+  const [currentPage, setCurrentPage] = useState<NavigationPage>(getInitialPage);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Sync URL changes with popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const page = PATH_TO_PAGE[path] || 'dashboard';
+      setCurrentPage(page);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Sync initial URL if at root
+  useEffect(() => {
+    if (isAuthenticated) {
+      const path = window.location.pathname;
+      if (path === '/' || !PATH_TO_PAGE[path]) {
+        const targetPath = PAGE_TO_PATH[currentPage] || '/dashboard';
+        window.history.replaceState({ page: currentPage }, '', targetPath);
+      }
+    }
+  }, [isAuthenticated, currentPage]);
+
+  const navigateTo = (page: NavigationPage) => {
+    setCurrentPage(page);
+    const targetPath = PAGE_TO_PATH[page] || '/dashboard';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ page }, '', targetPath);
+    }
+  };
 
   // Auth Modals
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -36,19 +101,19 @@ function AppContent() {
   const handleQuickAction = (action: 'product' | 'receipt' | 'delivery' | 'transfer' | 'adjustment') => {
     switch (action) {
       case 'product':
-        setCurrentPage('products');
+        navigateTo('products');
         break;
       case 'receipt':
-        setCurrentPage('receipts');
+        navigateTo('receipts');
         break;
       case 'delivery':
-        setCurrentPage('deliveries');
+        navigateTo('deliveries');
         break;
       case 'transfer':
-        setCurrentPage('transfers');
+        navigateTo('transfers');
         break;
       case 'adjustment':
-        setCurrentPage('adjustments');
+        navigateTo('adjustments');
         break;
       default:
         break;
@@ -159,7 +224,7 @@ function AppContent() {
       {/* Sidebar (Desktop fixed, Mobile offcanvas) */}
       <Sidebar
         currentPage={currentPage}
-        onNavigate={(page) => setCurrentPage(page)}
+        onNavigate={(page) => navigateTo(page)}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -170,14 +235,14 @@ function AppContent() {
         <Navbar
           currentPage={currentPage}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
-          onNavigate={(page) => setCurrentPage(page)}
+          onNavigate={(page) => navigateTo(page)}
         />
 
         {/* View Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {currentPage === 'dashboard' && (
             <DashboardView
-              onNavigate={(page) => setCurrentPage(page)}
+              onNavigate={(page) => navigateTo(page)}
               onOpenQuickAction={handleQuickAction}
             />
           )}

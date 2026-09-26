@@ -241,8 +241,9 @@ export class ProductsService {
       throw new NotFoundError(`Category not found with ID: ${dto.categoryId}`);
     }
 
-    return await prisma.$transaction(async (tx) => {
-      const product = await tx.product.create({
+    return await prisma.$transaction(
+      async (tx) => {
+        const product = await tx.product.create({
         data: {
           sku: dto.sku.trim().toUpperCase(),
           name: dto.name.trim(),
@@ -291,7 +292,9 @@ export class ProductsService {
       }
 
       return product;
-    });
+    },
+    { maxWait: 15000, timeout: 30000 }
+  );
   }
 
   /**

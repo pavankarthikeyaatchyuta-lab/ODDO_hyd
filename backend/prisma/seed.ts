@@ -128,6 +128,16 @@ async function main() {
     },
   });
 
+  const catPack = await prisma.category.upsert({
+    where: { code: 'PACKAGING' },
+    update: {},
+    create: {
+      code: 'PACKAGING',
+      name: 'Packaging Materials',
+      description: 'Corrugated boxes, heavy wrapping, and shipping containers',
+    },
+  });
+
   // 3. Seed Warehouses
   const whMain = await prisma.warehouse.upsert({
     where: { code: 'WH-MAIN' },
@@ -147,6 +157,17 @@ async function main() {
       code: 'WH-WEST',
       name: 'West Coast Logistics Facility',
       address: 'Pier 42 Maritime Parkway, Docklands',
+      isActive: true,
+    },
+  });
+
+  const whProd = await prisma.warehouse.upsert({
+    where: { code: 'WH-PROD' },
+    update: {},
+    create: {
+      code: 'WH-PROD',
+      name: 'Production Warehouse Floor',
+      address: 'Building 4, Factory Zone, Manufacturing Plant',
       isActive: true,
     },
   });
@@ -229,6 +250,31 @@ async function main() {
     where: { barcode: 'WH-WEST-W1-R01-S01-B01' },
     update: {},
     create: { shelfId: shelfWest01.id, code: 'B01', barcode: 'WH-WEST-W1-R01-S01-B01' },
+  });
+
+  // WH-PROD locations
+  const zoneProd = await prisma.zone.upsert({
+    where: { warehouseId_code: { warehouseId: whProd.id, code: 'ZONE-P1' } },
+    update: {},
+    create: { warehouseId: whProd.id, code: 'ZONE-P1', name: 'Assembly & Production Buffer' },
+  });
+
+  const rackProd01 = await prisma.rack.upsert({
+    where: { zoneId_code: { zoneId: zoneProd.id, code: 'PR01' } },
+    update: {},
+    create: { zoneId: zoneProd.id, code: 'PR01', aisleNumber: 'Aisle 01' },
+  });
+
+  const shelfProd01 = await prisma.shelf.upsert({
+    where: { rackId_code: { rackId: rackProd01.id, code: 'PS01' } },
+    update: {},
+    create: { rackId: rackProd01.id, code: 'PS01', levelNumber: 1 },
+  });
+
+  const binProd01 = await prisma.bin.upsert({
+    where: { barcode: 'WH-PROD-P1-PR01-PS01-PB01' },
+    update: {},
+    create: { shelfId: shelfProd01.id, code: 'PB01', barcode: 'WH-PROD-P1-PR01-PS01-PB01' },
   });
 
   // 5. Seed Products
@@ -340,6 +386,24 @@ async function main() {
     },
   });
 
+  const pBox = await prisma.product.upsert({
+    where: { sku: 'BOX-CRG-01' },
+    update: { minStock: 50, maxStock: 500, reorderQuantity: 150 },
+    create: {
+      sku: 'BOX-CRG-01',
+      name: 'Packaging Box Corrugated Heavy-Duty',
+      description: 'Reinforced 3-ply corrugated cartons for warehouse shipping',
+      categoryId: catPack.id,
+      uom: 'PCS',
+      costPrice: 2.5,
+      salePrice: 5.0,
+      minStock: 50,
+      maxStock: 500,
+      reorderQuantity: 150,
+      isActive: true,
+    },
+  });
+
   // 6. Seed Suppliers
   const supApex = await prisma.supplier.upsert({
     where: { code: 'SUP-APEX' },
@@ -414,6 +478,13 @@ async function main() {
     where: { productId_binId: { productId: pGloves.id, binId: binWest01.id } },
     update: { physicalQty: 20 },
     create: { productId: pGloves.id, binId: binWest01.id, physicalQty: 20 },
+  });
+
+  // Packaging Box: 250 in WH-PROD
+  await prisma.stockBalance.upsert({
+    where: { productId_binId: { productId: pBox.id, binId: binProd01.id } },
+    update: { physicalQty: 250 },
+    create: { productId: pBox.id, binId: binProd01.id, physicalQty: 250 },
   });
 
   // 8. Seed Operations (Receipts, Deliveries, Transfers, Adjustments)
